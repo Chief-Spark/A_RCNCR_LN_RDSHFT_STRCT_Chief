@@ -18,6 +18,26 @@
 --
 -- Estados: en_proceso -> completado | fallido. Una corrida 'fallido' NO
 -- bloquea: la siguiente con la misma firma vuelve a exportar.
+--
+-- LA FRONTERA DEL EXPORT ES SUYA Y NO SE TOMA DE nov_control. Son procesos
+-- distintos y el export puede correr mas veces que la carga, de modo que
+-- heredar el watermark de Novedades dejaria fuera lo que se cargo entre dos
+-- exportaciones. Se lee como
+--   MAX(watermark_nuevo) WHERE estado = 'completado' AND ambiente = <el actual>
+-- ACOTADO POR AMBIENTE, que es justo lo que a nov_control le falta y ya esta
+-- anotado como riesgo latente en la bitacora del Batch.
+--
+-- POR QUE fecha_actualizacion Y NO lote: el cargador de Novedades no hace
+-- UPDATE en sitio, hace DELETE + INSERT y solo sobre las filas de la ventana
+-- (sp_novedades_cargar_mat_ubicacion_edf.sql:36-70, WHERE flag_op IN ('I','A')),
+-- escribiendo fecha_actualizacion = GETDATE(). De modo que la fecha se mueve
+-- en altas Y en cambios, y NO se mueve en lo que no se toco: discrimina. El
+-- lote tambien serviria hoy, pero la fecha acumula si el export corre menos
+-- veces que la carga.
+--
+-- bootstrap: si no hay frontera previa, el export corre como FULL aunque se
+-- pida DELTA (mismo patron que 16_sp_unificacion_ciclo.sql:180-185). Sin esa
+-- marca, un DELTA que en realidad bajo todo se leeria como incremental.
 -- ============================================================
 
 CREATE TABLE IF NOT EXISTS bdm_datos.nov_export_control (
@@ -29,6 +49,9 @@ CREATE TABLE IF NOT EXISTS bdm_datos.nov_export_control (
   firma_datos       VARCHAR(2000)  NOT NULL,   -- huella de los datos exportados
   s3_prefix         VARCHAR(1000),             -- s3://<bucket>/<base>/<run_id>/
   registros_total   BIGINT,                    -- suma de filas de las 7 tablas
+  bootstrap         BOOLEAN,                   -- TRUE si se pidio DELTA y corrio como FULL
+  watermark_anterior TIMESTAMP,                -- frontera leida al arrancar (NULL en bootstrap)
+  watermark_nuevo   TIMESTAMP,                 -- MAX(fecha_actualizacion) del dato considerado
   ultimo_error      VARCHAR(4000),
   fecha_inicio      TIMESTAMP      DEFAULT GETDATE(),
   fecha_fin         TIMESTAMP,
