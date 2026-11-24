@@ -80,9 +80,16 @@ FROM (
   SELECT 'QA',   'region',          'us-east-1'                                                                                                 UNION ALL
 
   -- DEMO (cuenta 453645298399)
+  -- OJO AL TOKEN: la cuenta se llama DEMO en Jenkins, 'uat' en el alias de AWS y
+  -- 'stg' en todo lo que crea la IaC. MEDIDO en la salida del apply de
+  -- COAWSPPR/tf_rcncr_linea_ws5_infra, job DEMO/TERRAFORM #7274 (2026-11-23,
+  -- 135 added): "redshift_unload" = BURoleFor-stg-453645298399-...-redshift-unload
+  -- y s3_triggers_bucket = stg-453645298399-rcncr-ws5-triggers-reconocer-s3.
+  -- El token NO se deduce del nombre del ambiente ni del de otro recurso: se mide
+  -- por cuenta. Aqui decia 'demo' en los dos y ninguno de los dos objetos existe.
   SELECT 'DEMO', 'aws_account_id',  '453645298399'                                                                                             UNION ALL
-  SELECT 'DEMO', 'triggers_bucket', 'demo-453645298399-rcncr-ws5-triggers-reconocer-s3'                                                         UNION ALL
-  SELECT 'DEMO', 'unload_iam_role', 'arn:aws:iam::453645298399:role/BURoleFor-demo-453645298399-rcncr-ws5-redshift-unload'                      UNION ALL
+  SELECT 'DEMO', 'triggers_bucket', 'stg-453645298399-rcncr-ws5-triggers-reconocer-s3'                                                          UNION ALL
+  SELECT 'DEMO', 'unload_iam_role', 'arn:aws:iam::453645298399:role/BURoleFor-stg-453645298399-rcncr-ws5-redshift-unload'                       UNION ALL
   SELECT 'DEMO', 's3_base_prefix',  'nov'                                                                                                       UNION ALL
   SELECT 'DEMO', 'region',          'us-east-1'                                                                                                 UNION ALL
 
