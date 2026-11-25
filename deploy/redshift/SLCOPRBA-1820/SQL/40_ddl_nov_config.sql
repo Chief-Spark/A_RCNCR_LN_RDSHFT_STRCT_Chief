@@ -94,9 +94,17 @@ FROM (
   SELECT 'DEMO', 'region',          'us-east-1'                                                                                                 UNION ALL
 
   -- PROD (cuenta 696708350333)
+  -- TOKEN 'pro', y conviene saber con que evidencia: el apply de
+  -- COAWSPPR/TF_RCNCR_WS5_INFRA en PROD (2026-11-25) creo el par de GEO como
+  -- pro-696708350333-rcncr-ws5-geo, de modo que el token de la cuenta esta
+  -- MEDIDO. Lo que todavia NO esta medido es el par del UNLOAD: lo crea el OTRO
+  -- repo, tf_rcncr_linea_ws5_infra, que aun no ha corrido en PROD. Se pone
+  -- 'pro' porque en DEMO los dos repos usaron el MISMO token de la cuenta
+  -- ('stg' los dos), pero hay que confirmarlo contra la salida de ese apply
+  -- antes de dar el UNLOAD por bueno.
   SELECT 'PROD', 'aws_account_id',  '696708350333'                                                                                             UNION ALL
-  SELECT 'PROD', 'triggers_bucket', 'prod-696708350333-rcncr-ws5-triggers-reconocer-s3'                                                         UNION ALL
-  SELECT 'PROD', 'unload_iam_role', 'arn:aws:iam::696708350333:role/BURoleFor-prod-696708350333-rcncr-ws5-redshift-unload'                      UNION ALL
+  SELECT 'PROD', 'triggers_bucket', 'pro-696708350333-rcncr-ws5-triggers-reconocer-s3'                                                          UNION ALL
+  SELECT 'PROD', 'unload_iam_role', 'arn:aws:iam::696708350333:role/BURoleFor-pro-696708350333-rcncr-ws5-redshift-unload'                       UNION ALL
   SELECT 'PROD', 's3_base_prefix',  'nov'                                                                                                       UNION ALL
   SELECT 'PROD', 'region',          'us-east-1'
 ) v;
